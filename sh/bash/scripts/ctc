@@ -1,0 +1,123 @@
+#!/bin/bash
+
+# ctc - Copy to clipboard utility
+# Usage: ctc [-t] [-v] command [args...]
+# -t: transparent mode (copy to clipboard AND display on console)
+# -v: verbose mode (show detailed information)
+
+# The utility can be installed by running the following command 
+# curl -fsSL https://gist.githubusercontent.com/Gj1337/762c14aeeb17e33fac30fbb24d392a0a/raw/e57c666553d16a259c7d35bd8d52f5eedc661fd8/installation-script.sh | bash
+
+show_usage() {
+    cat <<EOF
+Usage: ctc [-t] [-v] command [args...]
+  -t, --transparent    Copy to clipboard and display output (transparent mode)
+  -v, --verbose        Show detailed information about operations
+  -h, --help           Show this help message
+
+Examples:
+  pwd | ctc                            # Copy pwd output to clipboard
+  ctc ls -la                           # Copy ls output to clipboard only
+  ctc -t date                          # Copy date output to clipboard and show it
+  ctc -v --transparent cat file.txt    # Verbose mode with transparent output
+EOF
+}
+
+show_clipboard_error() {
+    cat <<EOF >&2
+Error: No clipboard utility found. Please install one of:
+
+  macOS: pbcopy (built-in)
+  Linux: xclip, xsel, or wl-copy
+    Ubuntu/Debian: sudo apt install xclip
+    RHEL/CentOS:   sudo yum install xclip
+    Arch:          sudo pacman -S xclip
+EOF
+}
+
+get_clipboard_cmd() {
+    if command -v pbcopy >/dev/null 2>&1; then
+        echo "pbcopy"
+    elif command -v xclip >/dev/null 2>&1; then
+        echo "xclip -selection clipboard"
+    elif command -v xsel >/dev/null 2>&1; then
+        echo "xsel --clipboard --input"
+    elif command -v wl-copy >/dev/null 2>&1; then
+        echo "wl-copy"
+    else
+        echo ""
+    fi
+}
+
+# Parse arguments
+transparent=false
+verbose=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -t|--transparent) transparent=true; shift ;;
+        -v|--verbose)     verbose=true; shift ;;
+        -h|--help)        show_usage; exit 0 ;;
+        -*)
+            echo "Error: Unknown option $1" >&2
+            show_usage >&2
+            exit 1
+            ;;
+        *) break ;;
+    esac
+done
+
+# Determine input mode
+if [[ -t 0 ]]; then
+    if [[ $# -eq 0 ]]; then
+        echo "Error: No command specified and no input from stdin" >&2
+        show_usage >&2
+        exit 1
+    fi
+    has_command=true
+else
+    has_command=false
+fi
+
+clipboard_cmd=$(get_clipboard_cmd)
+if [[ -z "$clipboard_cmd" ]]; then
+    show_clipboard_error
+    exit 1
+fi
+
+# Verbose info
+if [[ $verbose == true ]]; then
+    echo "Detected clipboard utility: $clipboard_cmd" >&2
+    $has_command && echo "Executing command: $*" >&2 || echo "Reading from stdin..." >&2
+fi
+
+# Execute command or handle stdin
+if [[ $has_command == true ]]; then
+    if [[ $transparent == true ]]; then
+        "$@" | tee >(eval "$clipboard_cmd")
+        exit_code=${PIPESTATUS[0]}
+    else
+        output=$("$@" 2>&1)
+        exit_code=$?
+        echo -n "$output" | eval "$clipboard_cmd"
+    fi
+else
+    if [[ $transparent == true ]]; then
+        tee >(eval "$clipboard_cmd")
+    else
+        eval "$clipboard_cmd"
+    fi
+    exit_code=0
+fi
+
+# Final feedback
+if [[ $transparent == false || $verbose == true ]]; then
+    if [[ $exit_code -eq 0 ]]; then
+        echo "✓ Output copied to clipboard." >&2
+    else
+        echo "⚠ Command failed (exit code $exit_code), but output was still copied to clipboard." >&2
+    fi
+fi
+
+exit $exit_code
+
