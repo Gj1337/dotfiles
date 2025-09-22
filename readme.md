@@ -2,7 +2,7 @@
 
 1. **Clone repo to home directory:**
    ```bash
-   git clone <repo-url> ~/dotfiles
+   git clone https://github.com/Gj1337/dotfiles
    cd ~/dotfiles
    ```
 
@@ -15,9 +15,7 @@
    sudo apt install stow
    ```
 
-3. **Create symlinks:**
+3. **Setup:**
    ```bash
-   stow */
-   ```
-   This creates symlinks for all configs in your home directory.
-
+   # Create symlinks for all configs in your home directory.
+   for d in */; do echo "Stowing ${d%/}"; stow "${d%/}"; done
