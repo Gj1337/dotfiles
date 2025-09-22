@@ -17,5 +17,6 @@
 
 3. **Setup:**
    ```bash
-   # Create symlinks for all configs in your home directory.
-   for d in */; do echo "Stowing ${d%/}"; stow "${d%/}"; done
+   # Run setup script to configure dotfiles
+   bash setup.sh
+   ```
