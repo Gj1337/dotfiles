@@ -261,6 +261,19 @@
                                     }
                                 ],
                                 "type": "basic"
+                            }, 
+			    {
+                                "from": {
+                                    "key_code": "c",
+                                    "modifiers": { "mandatory": ["fn"] }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "c",
+                                        "modifiers": ["left_control", "fn"]
+                                    }
+                                ],
+                                "type": "basic"
                             },
                             {
                                 "from": {
