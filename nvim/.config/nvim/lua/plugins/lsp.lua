@@ -26,6 +26,9 @@ return {
 			automatic_installation = true,
 		})
 
+		vim.diagnostic.config({
+			signs = false,
+		})
 
 		local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
