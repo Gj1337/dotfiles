@@ -9,9 +9,11 @@ local function setup_lsp_keymaps(bufnr)
 	map("n", "<leader>ca", vim.lsp.buf.code_action, opts)
 	map("n", "[d", vim.diagnostic.goto_prev, opts)
 	map("n", "]d", vim.diagnostic.goto_next, opts)
+	vim.api.nvim_set_keymap('n', '<leader>fe', ':Lexplore<CR>', { noremap = true, silent = true })
 	map("n", "<leader>e", vim.diagnostic.open_float, opts)
-
-	map("n", "<leader>f", function()
+	vim.keymap.set('n', '<leader>q', ':q<CR>', { desc = 'Close current window' }
+	)
+	map("n", "<leader>w", function()
 		vim.lsp.buf.format({ async = true })
 		vim.cmd("write")
 	end, opts)
